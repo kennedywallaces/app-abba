@@ -127,6 +127,17 @@
   .weekday-checks label{display:flex;align-items:center;gap:6px;font-size:.85rem;cursor:pointer;}
   .weekday-checks input{width:15px;height:15px;accent-color:var(--teal);cursor:pointer;}
   .escala-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px;}
+  button.ghost-btn{
+    all:unset;box-sizing:border-box;cursor:pointer;background:transparent;color:var(--wine);
+    border:1px solid var(--wine);padding:9px 19px;border-radius:3px;font-size:.88rem;font-weight:500;white-space:nowrap;
+  }
+  button.ghost-btn:hover{background:var(--wine);color:var(--white);}
+  .viz-modes-box{
+    background:var(--white);border:1px solid var(--line);border-left:3px solid var(--teal);
+    border-radius:4px;padding:20px 22px;margin-bottom:24px;
+  }
+  .viz-modes-title{font-size:1.02rem;font-weight:600;color:var(--teal-dark);margin:0 0 16px 0;}
+  .viz-modes-box .field{margin-bottom:16px;}
   .customdate-row{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--line);}
   .export-actions{display:none;margin-top:8px;margin-bottom:36px;}
   .export-actions-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:var(--teal-dark);border-radius:6px;padding:20px 26px;box-shadow:0 4px 14px rgba(13,41,96,.22);}
@@ -413,14 +424,6 @@
           </div>
         </div>
 
-        <div class="field mode-field">
-          <label>Gerar escala por</label>
-          <div class="mode-toggle">
-            <label><input type="radio" name="e-mode" id="e-mode-date" value="date" checked> Dia do mês — mostra a data exata de cada culto</label>
-            <label><input type="radio" name="e-mode" id="e-mode-weekday" value="weekday"> Dia da semana — recorrente, mostra só o dia da semana</label>
-          </div>
-        </div>
-
         <div class="field weekday-field">
           <label>Dias de culto no mês</label>
           <div class="weekday-checks" id="weekday-checks">
@@ -437,6 +440,7 @@
         <div class="escala-actions">
           <button class="primary" id="e-generate">Gerar cultos</button>
           <button class="primary" id="e-recoverlast">Recuperar última escala</button>
+          <button class="ghost-btn" id="e-clear">Limpar escala</button>
         </div>
 
         <div class="customdate-row" id="customdate-row">
@@ -447,20 +451,32 @@
           <button class="link" id="e-addcustom">+ adicionar culto</button>
         </div>
 
-        <div class="field view-field">
-          <label for="e-view">Visualizar escala</label>
-          <select id="e-view">
-            <option value="tabela">Tabela Única</option>
-            <option value="semana">Dia da Semana</option>
-            <option value="mes" selected>Dia do Mês</option>
-          </select>
-        </div>
+        <div class="viz-modes-box">
+          <h3 class="viz-modes-title">Modos de Visualização</h3>
 
-        <div class="field mode-field" id="color-mode-field">
-          <label>Cores das funções</label>
-          <div class="mode-toggle">
-            <label><input type="radio" name="e-colormode" id="e-colormode-default" value="padrao" checked> Cores padrão (zebrado)</label>
-            <label><input type="radio" name="e-colormode" id="e-colormode-func" value="porfuncao"> Separar por função — cores automáticas</label>
+          <div class="field mode-field">
+            <label>Gerar escala por</label>
+            <div class="mode-toggle">
+              <label><input type="radio" name="e-mode" id="e-mode-date" value="date" checked> Dia do mês — mostra a data exata de cada culto</label>
+              <label><input type="radio" name="e-mode" id="e-mode-weekday" value="weekday"> Dia da semana — recorrente, mostra só o dia da semana</label>
+            </div>
+          </div>
+
+          <div class="field view-field">
+            <label for="e-view">Visualizar escala</label>
+            <select id="e-view">
+              <option value="tabela">Tabela Única</option>
+              <option value="semana">Dia da Semana</option>
+              <option value="mes" selected>Dia do Mês</option>
+            </select>
+          </div>
+
+          <div class="field mode-field" id="color-mode-field" style="margin-bottom:0;">
+            <label>Cores das funções</label>
+            <div class="mode-toggle">
+              <label><input type="radio" name="e-colormode" id="e-colormode-default" value="padrao" checked> Cores padrão (zebrado)</label>
+              <label><input type="radio" name="e-colormode" id="e-colormode-func" value="porfuncao"> Separar por função — cores automáticas</label>
+            </div>
           </div>
         </div>
 
@@ -1081,6 +1097,20 @@
     sch.year = sch.lastGenerated.year;
     sch.weekdays = sch.lastGenerated.weekdays.slice();
     loadDeptControls(depId);
+    renderEscala();
+  });
+
+  document.getElementById('e-clear').addEventListener('click', async ()=>{
+    const depId = currentDeptId();
+    if(!depId) return;
+    const dep = departments.find(d=>d.id===depId);
+    if(!confirm(`Limpar toda a escala de ${dep ? dep.name : 'este departamento'}? Todos os cultos e escalações já feitos aqui serão apagados — os outros departamentos não são afetados. Essa ação não pode ser desfeita.`)) return;
+    const { error } = await sb.from('services').delete().eq('department_id', depId);
+    if(error){ alert('Erro ao limpar escala: ' + error.message); return; }
+    const sch = ensureDeptSchedule(depId);
+    sch.services = []; sch.assignments = {}; sch.lastGenerated = null;
+    updateRecoverButton();
+    await refreshEscalaData();
     renderEscala();
   });
 
