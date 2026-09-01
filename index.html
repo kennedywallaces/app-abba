@@ -12,14 +12,14 @@
 <style>
   :root{
     --ink:#1D2E2C;
-    --paper:#fffcff;
+    --paper:#EBF0EF;
     --paper-2:#DDE6E3;
     --teal:#143a8b;
     --teal-dark:#0d2960;
     --gold:#ff5523;
     --wine:#8C3B4A;
     --line:#C4D0CC;
-    --white:#e8e8e8;
+    --white:#FBFAF6;
     --stripe:#EFF4F2;
   }
   *{box-sizing:border-box;}
@@ -73,6 +73,19 @@
   .func-check-item input{width:15px;height:15px;accent-color:var(--teal);cursor:pointer;}
 
   .vol-filter-count{font-size:.82rem;color:#4B605D;margin-bottom:14px;}
+
+  /* Home */
+  .home-notice{
+    background:var(--white);border:1px solid var(--line);border-left:4px solid var(--gold);
+    border-radius:4px;padding:22px 24px;margin-bottom:20px;white-space:pre-wrap;
+    font-size:.95rem;line-height:1.65;color:var(--ink);
+  }
+  .home-notice-empty{color:#6E8C88;font-style:italic;}
+  .home-meta{font-size:.76rem;color:#6E8C88;margin-bottom:20px;}
+  .home-edit textarea{
+    width:100%;min-height:160px;font-family:inherit;font-size:.9rem;padding:12px 14px;
+    border:1px solid var(--line);border-radius:4px;background:var(--white);color:var(--ink);resize:vertical;
+  }
 
   .table-scroll{overflow-x:auto;}
   table.vol-table{width:100%;border-collapse:collapse;min-width:480px;}
@@ -140,6 +153,12 @@
   .grid-wrap{overflow-x:auto;}
   table.escala{border-collapse:collapse;width:100%;min-width:480px;background:var(--white);}
   table.escala th{text-align:left;font-size:.72rem;font-weight:600;color:var(--white);background:var(--teal);padding:10px 12px;position:sticky;top:0;}
+  table.escala th .col-del{
+    all:unset;box-sizing:border-box;cursor:pointer;float:right;color:var(--white);opacity:.65;
+    font-size:.9rem;line-height:1;padding:0 0 0 8px;
+  }
+  table.escala th .col-del:hover{opacity:1;}
+  #escala-export-target.exporting table.escala th .col-del{display:none;}
   table.escala td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;font-size:.85rem;}
   table.escala tbody tr:nth-child(even) td:not(.func-cell){background:var(--stripe);}
   table.escala tbody tr:nth-child(odd) td:not(.func-cell){background:var(--white);}
@@ -239,7 +258,8 @@
       </button>
     </div>
     <nav id="main-nav">
-      <button data-tab="departamentos" class="active"><span class="nav-dot"></span>Departamentos</button>
+      <button data-tab="home" class="active"><span class="nav-dot"></span>Início</button>
+      <button data-tab="departamentos"><span class="nav-dot"></span>Departamentos</button>
       <button data-tab="voluntarios"><span class="nav-dot"></span>Voluntários</button>
       <button data-tab="escala"><span class="nav-dot"></span>Escala mensal</button>
     </nav>
@@ -301,8 +321,18 @@
       <span id="connect-status-text"></span>
     </div>
 
+    <!-- INÍCIO -->
+    <section id="tab-home">
+      <h2 class="page-title">Início</h2>
+      <p class="page-desc">Um mural rápido para avisos e recados — só quem edita o app pode alterar.</p>
+      <div id="home-locked" class="locked-msg" style="display:none;">Conecte-se ao Supabase para ver os avisos.</div>
+      <div id="home-content">
+        <div id="home-message-box"></div>
+      </div>
+    </section>
+
     <!-- DEPARTAMENTOS -->
-    <section id="tab-departamentos">
+    <section id="tab-departamentos" style="display:none;">
       <h2 class="page-title">Departamentos</h2>
       <p class="page-desc">Cada departamento é um grupo com sua própria escala, independente dos outros. Crie as funções de cada um e, se quiser, anexe a logo do grupo.</p>
       <div id="dept-locked" class="locked-msg" style="display:none;">Conecte-se ao Supabase na aba "Conexão" para começar.</div>
@@ -517,6 +547,8 @@
     if(textEl) textEl.textContent = msg;
   }
   function setLocked(isLocked){
+    document.getElementById('home-locked').style.display = isLocked ? 'block' : 'none';
+    document.getElementById('home-content').style.display = isLocked ? 'none' : '';
     document.getElementById('dept-locked').style.display = isLocked ? 'block' : 'none';
     document.getElementById('dept-content').style.display = isLocked ? 'none' : '';
     document.getElementById('vol-locked').style.display = isLocked ? 'block' : 'none';
@@ -601,6 +633,7 @@
     btn.addEventListener('click', ()=>{
       document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
+      document.getElementById('tab-home').style.display = btn.dataset.tab==='home' ? '' : 'none';
       document.getElementById('tab-voluntarios').style.display = btn.dataset.tab==='voluntarios' ? '' : 'none';
       document.getElementById('tab-departamentos').style.display = btn.dataset.tab==='departamentos' ? '' : 'none';
       document.getElementById('tab-escala').style.display = btn.dataset.tab==='escala' ? '' : 'none';
@@ -632,6 +665,52 @@
     renderDepartments();
     renderMonthOptions();
     renderDeptSelect();
+    await loadHomeMessage();
+  }
+
+  // ---------- Início (mural de avisos) ----------
+  let homeMessage = '';
+  let homeUpdatedAt = null;
+  let editingHome = false;
+
+  async function loadHomeMessage(){
+    const { data } = await sb.from('app_settings').select('*').eq('key','home_message').maybeSingle();
+    homeMessage = (data && data.value) || '';
+    homeUpdatedAt = (data && data.updated_at) || null;
+    renderHome();
+  }
+
+  function renderHome(){
+    const box = document.getElementById('home-message-box');
+    if(editingHome){
+      box.innerHTML = `
+        <div class="home-edit">
+          <textarea id="home-textarea" placeholder="Escreva aqui um aviso, recado ou instrução para quem usa o app...">${escapeHtml(homeMessage)}</textarea>
+          <div class="form-actions" style="margin-top:12px;">
+            <button class="primary" id="home-save">Salvar aviso</button>
+            <button class="link" id="home-cancel">cancelar</button>
+          </div>
+        </div>`;
+      document.getElementById('home-save').addEventListener('click', saveHomeMessage);
+      document.getElementById('home-cancel').addEventListener('click', ()=>{ editingHome = false; renderHome(); });
+      return;
+    }
+    const metaHtml = homeUpdatedAt
+      ? `<div class="home-meta">Atualizado em ${new Date(homeUpdatedAt).toLocaleString('pt-BR')}</div>` : '';
+    box.innerHTML = `
+      <div class="home-notice ${homeMessage ? '' : 'home-notice-empty'}">${homeMessage ? escapeHtml(homeMessage) : 'Nenhum aviso definido ainda. Clique em "editar aviso" para escrever o primeiro recado.'}</div>
+      ${metaHtml}
+      <button class="small-icon" id="home-edit-btn">editar aviso</button>
+    `;
+    document.getElementById('home-edit-btn').addEventListener('click', ()=>{ editingHome = true; renderHome(); });
+  }
+
+  async function saveHomeMessage(){
+    const text = document.getElementById('home-textarea').value;
+    const { error } = await sb.from('app_settings').upsert({ key:'home_message', value:text, updated_at: new Date().toISOString() });
+    if(error){ alert('Erro ao salvar aviso: ' + error.message); return; }
+    editingHome = false;
+    await loadHomeMessage();
   }
 
   function renderVolFilterOptions(){
@@ -1171,7 +1250,7 @@
 
   function buildTable(cols, labelFn, deptFuncs, sch){
     const useColors = sch.tabelaColorMode === 'porfuncao';
-    const headerCells = cols.map(s=>`<th>${labelFn(s)}</th>`).join('');
+    const headerCells = cols.map(s=>`<th>${labelFn(s)}<button class="col-del" data-delservice="${s.id}" title="Remover este culto">×</button></th>`).join('');
     const rows = deptFuncs.map((f, idx)=> buildFunctionRow(f, cols, sch, useColors ? functionColor(idx, deptFuncs.length) : null)).join('');
     return `<div class="grid-wrap"><table class="escala"><thead><tr><th>Função</th>${headerCells}</tr></thead><tbody>${rows}</tbody></table></div>`;
   }
@@ -1272,6 +1351,20 @@
         await sb.from('assignments').delete().eq('id', rowId);
         await refreshEscalaData();
         reRenderKeepingPlace(`${sid}|${fid}`);
+      });
+    });
+    container.querySelectorAll('[data-delservice]').forEach(btn=>{
+      btn.addEventListener('click', async (ev)=>{
+        ev.stopPropagation();
+        const sid = btn.dataset.delservice;
+        const s = sch.services.find(x=>x.id===sid);
+        const label = s ? formatDate(s.date) : 'este culto';
+        if(!confirm(`Remover ${label} da escala deste departamento? As escalações desse dia também serão apagadas. Isso não afeta outros departamentos.`)) return;
+        await sb.from('services').delete().eq('id', sid);
+        await refreshEscalaData();
+        const scrollY = window.scrollY;
+        renderEscala();
+        window.scrollTo(0, scrollY);
       });
     });
   }
