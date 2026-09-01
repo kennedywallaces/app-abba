@@ -12,7 +12,7 @@
 <style>
   :root{
     --ink:#1D2E2C;
-    --paper:fffcff;
+    --paper:#EBF0EF;
     --paper-2:#DDE6E3;
     --teal:#143a8b;
     --teal-dark:#0d2960;
@@ -231,7 +231,7 @@
   <div class="rail">
     <div class="rail-top">
       <div class="rail-title">
-        <h1>Escala de<br>Voluntários AD Missões</h1>
+        <h1>Escala de<br>Voluntários</h1>
         <div class="sub">Departamentos &amp; cultos</div>
       </div>
       <button class="hamburger" id="hamburger-btn" aria-label="Abrir menu" aria-expanded="false" aria-controls="main-nav">
@@ -239,8 +239,7 @@
       </button>
     </div>
     <nav id="main-nav">
-      <button data-tab="conexao" class="active"><span class="nav-dot" id="nav-dot-conexao"></span>Conexão</button>
-      <button data-tab="departamentos"><span class="nav-dot"></span>Departamentos</button>
+      <button data-tab="departamentos" class="active"><span class="nav-dot"></span>Departamentos</button>
       <button data-tab="voluntarios"><span class="nav-dot"></span>Voluntários</button>
       <button data-tab="escala"><span class="nav-dot"></span>Escala mensal</button>
     </nav>
@@ -248,7 +247,17 @@
   </div>
 
   <main>
-    <!-- CONEXÃO -->
+    <!--
+      A aba "Conexão" foi escondida do menu a pedido do dono do projeto,
+      para evitar que qualquer pessoa usando o app veja/edite a URL e a
+      chave pela tela. As credenciais agora são fixas no código — veja o
+      bloco "CONFIGURAÇÃO FIXA DO SUPABASE" lá no <script>, perto do topo.
+
+      Se um dia precisar reativar esta tela (por exemplo, pra trocar de
+      projeto direto pelo navegador em vez de editar o arquivo), descomente
+      o bloco abaixo E o botão de nav correspondente logo acima:
+      <button data-tab="conexao"><span class="nav-dot" id="nav-dot-conexao"></span>Conexão</button>
+
     <section id="tab-conexao">
       <h2 class="page-title">Conexão com o Supabase</h2>
       <p class="page-desc">Cole a URL e a chave pública (anon) do seu projeto Supabase. Isso fica salvo só neste navegador.</p>
@@ -283,9 +292,17 @@
         <button class="link" id="sb-disconnect">esquecer credenciais salvas neste navegador</button>
       </div>
     </section>
+    -->
+
+    <!-- Banner de erro simples: aparece só se a conexão fixa falhar,
+         sem expor nenhum campo de URL/chave na tela. -->
+    <div class="connect-status off" id="connect-status" style="display:none;">
+      <span class="connect-dot"></span>
+      <span id="connect-status-text"></span>
+    </div>
 
     <!-- DEPARTAMENTOS -->
-    <section id="tab-departamentos" style="display:none;">
+    <section id="tab-departamentos">
       <h2 class="page-title">Departamentos</h2>
       <p class="page-desc">Cada departamento é um grupo com sua própria escala, independente dos outros. Crie as funções de cada um e, se quiser, anexe a logo do grupo.</p>
       <div id="dept-locked" class="locked-msg" style="display:none;">Conecte-se ao Supabase na aba "Conexão" para começar.</div>
@@ -451,6 +468,27 @@
   const DAY_FULL = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
   const WEEKDAY_ORDER = [1,2,3,4,5,6,0];
 
+  // ============================================================
+  // CONFIGURAÇÃO FIXA DO SUPABASE
+  // ------------------------------------------------------------
+  // A URL e a chave abaixo estão fixas no código de propósito — a
+  // aba "Conexão" foi escondida do menu pra ninguém que usa o app
+  // no dia a dia ver ou trocar essas informações pela tela.
+  //
+  // Se um dia precisar trocar de projeto ou girar (rotacionar) a
+  // chave anon no painel do Supabase, é só atualizar os dois
+  // valores abaixo e salvar o arquivo de novo.
+  //
+  // Importante: a chave "anon public" é feita pra ser pública — ela
+  // só é segura porque as regras de RLS (Row Level Security) do
+  // supabase-schema.sql controlam o que pode ser lido/escrito.
+  // Escondida ou não, ela sempre vai aparecer pra quem abrir o
+  // "Ver código-fonte" do navegador nesta página — isso é normal e
+  // esperado, não é uma falha de segurança em si.
+  // ============================================================
+  const SUPABASE_URL = 'https://wnnoorrsbvfvserqgxft.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indubm9vcnJzYnZmdnNlcnFneGZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxOTcyMzgsImV4cCI6MjEwMzc3MzIzOH0.u774ct87RhjxuLxv1EdxF4TyVERj0XF5MEdSnGpPRJA';
+
   let sb = null;
   let connected = false;
 
@@ -470,19 +508,13 @@
   function slugify(str){ return String(str).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'escala'; }
 
   // ---------- Conexão ----------
-  function getSavedCreds(){
-    try{ return { url: localStorage.getItem('sb_url')||'', key: localStorage.getItem('sb_key')||'' }; }
-    catch(e){ return { url:'', key:'' }; }
-  }
-  function saveCreds(url,key){ try{ localStorage.setItem('sb_url', url); localStorage.setItem('sb_key', key); }catch(e){} }
-  function clearCreds(){ try{ localStorage.removeItem('sb_url'); localStorage.removeItem('sb_key'); }catch(e){} }
-
   function setConnectStatus(ok, msg){
     const box = document.getElementById('connect-status');
+    if(!box) return;
     box.className = 'connect-status ' + (ok ? 'ok' : 'off');
-    document.getElementById('connect-status-text').textContent = msg;
-    document.querySelectorAll('#nav-dot-conexao, .nav-dot').forEach(()=>{});
-    document.getElementById('nav-dot-conexao').classList.toggle('ok', ok);
+    box.style.display = ok ? 'none' : 'flex'; // só aparece quando dá erro
+    const textEl = document.getElementById('connect-status-text');
+    if(textEl) textEl.textContent = msg;
   }
   function setLocked(isLocked){
     document.getElementById('dept-locked').style.display = isLocked ? 'block' : 'none';
@@ -496,11 +528,8 @@
   function normalizeSupabaseUrl(raw){
     let url = String(raw).trim();
     url = url.replace(/\s+/g, '');
-    // remove aspas se o usuário colou com elas
     url = url.replace(/^['"]|['"]$/g, '');
-    // se colaram o endpoint REST/GraphQL/Auth em vez da Project URL, corta a partir daí
     url = url.split('/rest/')[0].split('/auth/')[0].split('/graphql/')[0].split('/storage/')[0];
-    // remove barras finais
     url = url.replace(/\/+$/, '');
     return url;
   }
@@ -508,59 +537,50 @@
     return String(raw).trim().replace(/\s+/g, '').replace(/^['"]|['"]$/g, '');
   }
 
-  async function connect(rawUrl, rawKey, silent){
+  async function connect(rawUrl, rawKey){
     const url = normalizeSupabaseUrl(rawUrl);
     const key = normalizeSupabaseKey(rawKey);
     if(!url || !key){
-      if(!silent) setConnectStatus(false, 'Preencha a URL e a chave antes de conectar.');
+      setConnectStatus(false, 'Configuração incompleta — confira as constantes SUPABASE_URL e SUPABASE_ANON_KEY no início do <script>.');
+      setLocked(true);
       return;
     }
     if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)){
-      setConnectStatus(false, 'Essa URL não parece uma Project URL do Supabase. O formato esperado é https://xxxxxxxx.supabase.co (sem barra no final, sem /rest/v1). Confira em Project Settings → API → Project URL.');
+      setConnectStatus(false, 'A SUPABASE_URL fixada no código não parece uma Project URL válida (formato esperado: https://xxxxxxxx.supabase.co).');
+      setLocked(true);
       return;
     }
-    if(!/^ey/.test(key)){
-      setConnectStatus(false, 'Essa chave não parece a chave "anon public" (ela deveria começar com "eyJ..."). Confira em Project Settings → API → Project API keys → anon public.');
-      return;
-    }
-    document.getElementById('sb-url').value = url;
-    document.getElementById('sb-key').value = key;
     try{
       sb = window.supabase.createClient(url, key);
       const { error } = await sb.from('departments').select('id').limit(1);
       if(error) throw error;
       connected = true;
-      saveCreds(url, key);
       setConnectStatus(true, 'Conectado ao seu projeto Supabase.');
       setLocked(false);
       await loadAll();
     } catch(err){
       connected = false;
       setLocked(true);
-      let hint = 'confira a URL/chave e se o schema.sql já foi executado.';
+      let hint = 'confira a URL/chave fixadas no código e se o schema.sql já foi executado.';
       const msg = (err && err.message) ? err.message : String(err);
       if(/relation .* does not exist/i.test(msg)){
         hint = 'as tabelas ainda não existem nesse projeto — rode o arquivo supabase-schema.sql inteiro no SQL Editor do Supabase.';
       } else if(/JWT|invalid API key|apikey/i.test(msg)){
-        hint = 'a chave parece inválida — confira se copiou a "anon public" (não a "service_role") em Project Settings → API.';
+        hint = 'a chave parece inválida — confira se SUPABASE_ANON_KEY no código é a "anon public" (não a "service_role").';
       } else if(/Failed to fetch|NetworkError/i.test(msg)){
-        hint = 'não deu pra alcançar essa URL — confira se ela está exatamente igual à Project URL do painel do Supabase.';
+        hint = 'não deu pra alcançar essa URL — confira se SUPABASE_URL no código está exatamente igual à Project URL do painel do Supabase.';
       }
       setConnectStatus(false, 'Não foi possível conectar: ' + msg + ' — ' + hint);
     }
   }
 
-  document.getElementById('sb-connect').addEventListener('click', ()=>{
-    connect(document.getElementById('sb-url').value.trim(), document.getElementById('sb-key').value.trim(), false);
-  });
-  document.getElementById('sb-disconnect').addEventListener('click', ()=>{
-    clearCreds();
-    document.getElementById('sb-url').value='';
-    document.getElementById('sb-key').value='';
-    connected = false; sb = null;
-    setLocked(true);
-    setConnectStatus(false, 'Credenciais esquecidas neste navegador.');
-  });
+  // Os listeners de #sb-connect e #sb-disconnect foram removidos porque
+  // esses botões ficaram dentro do bloco comentado da aba "Conexão".
+  // Se reativar a aba (veja o comentário no HTML), lembre de trazer de
+  // volta algo equivalente a:
+  //   document.getElementById('sb-connect').addEventListener('click', ()=>{
+  //     connect(document.getElementById('sb-url').value, document.getElementById('sb-key').value);
+  //   });
 
   // ---------- Menu hambúrguer ----------
   const hamburgerBtn = document.getElementById('hamburger-btn');
@@ -581,7 +601,6 @@
     btn.addEventListener('click', ()=>{
       document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
-      document.getElementById('tab-conexao').style.display = btn.dataset.tab==='conexao' ? '' : 'none';
       document.getElementById('tab-voluntarios').style.display = btn.dataset.tab==='voluntarios' ? '' : 'none';
       document.getElementById('tab-departamentos').style.display = btn.dataset.tab==='departamentos' ? '' : 'none';
       document.getElementById('tab-escala').style.display = btn.dataset.tab==='escala' ? '' : 'none';
@@ -1297,12 +1316,7 @@
   // ---------- init ----------
   setLocked(true);
   renderMonthOptions();
-  const creds = getSavedCreds();
-  if(creds.url && creds.key){
-    document.getElementById('sb-url').value = creds.url;
-    document.getElementById('sb-key').value = creds.key;
-    connect(creds.url, creds.key, true);
-  }
+  connect(SUPABASE_URL, SUPABASE_ANON_KEY);
 })();
 </script>
 </body>
