@@ -41,6 +41,29 @@
   .nav-dot.ok{background:#5FC48D;}
   .rail .footnote{margin-top:auto;font-size:.72rem;color:#6E8C88;line-height:1.5;}
 
+  /* Login */
+  .login-screen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:var(--paper) center/cover no-repeat;padding:24px;
+  }
+  .login-card{
+    background:rgba(251,250,246,.96);border-radius:8px;padding:40px 36px;
+    width:100%;max-width:380px;box-shadow:0 12px 36px rgba(13,41,96,.18);
+  }
+  .login-title{font-size:1.5rem;font-weight:600;color:var(--teal-dark);margin:0 0 6px 0;line-height:1.25;}
+  .login-sub{font-size:.85rem;color:#4B605D;margin:0 0 24px 0;}
+  .login-card .field{margin-bottom:16px;}
+  .login-error{
+    margin-top:14px;padding:10px 12px;background:#FCEFE9;color:#8C3B1E;
+    border:1px solid #F3D3C2;border-radius:4px;font-size:.82rem;
+  }
+
+  /* Badge de usuário logado */
+  .user-badge{padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:6px;}
+  .user-badge-name{font-size:.9rem;font-weight:600;color:var(--white);word-break:break-word;}
+  .user-badge-role{font-size:.74rem;color:#A9C4C0;margin-top:2px;}
+  .user-badge-logout{color:var(--gold) !important;font-size:.78rem !important;margin-top:8px;padding:0 !important;}
+
   main{flex:1;padding:44px 56px;max-width:1160px;min-width:0;}
   .page-title{font-size:2rem;font-weight:500;margin:0 0 6px 0;}
   .page-desc{color:#4B605D;font-size:.95rem;margin-bottom:32px;max-width:64ch;}
@@ -98,6 +121,25 @@
   .empty{padding:40px 0;text-align:center;color:#6E8C88;font-size:.9rem;}
 
   .dept-block{border:1px solid var(--line);border-left:3px solid var(--teal);background:var(--white);padding:18px 20px;margin-bottom:18px;}
+
+  /* Administração */
+  .admin-block{
+    background:var(--white);border:1px solid var(--line);border-left:3px solid var(--teal);
+    border-radius:4px;padding:20px 22px;margin-bottom:24px;
+  }
+  .admin-block-title{font-size:1.02rem;font-weight:600;color:var(--teal-dark);margin:0 0 6px 0;}
+  .admin-block-desc{font-size:.82rem;color:#4B605D;margin:0 0 14px 0;}
+  .admin-block textarea{
+    width:100%;min-height:130px;font-family:inherit;font-size:.9rem;padding:12px 14px;
+    border:1px solid var(--line);border-radius:4px;background:var(--white);color:var(--ink);resize:vertical;
+  }
+  .admin-form-title{font-size:.9rem;font-weight:600;color:var(--teal-dark);margin:22px 0 12px 0;}
+  #login-bg-preview img{height:60px;width:auto;max-width:160px;object-fit:cover;border:1px solid var(--line);border-radius:4px;background:var(--paper);}
+  table.vol-table td .role-tag{
+    display:inline-block;font-size:.72rem;padding:2px 9px;border-radius:20px;
+    background:var(--paper-2);color:var(--teal-dark);border:1px solid var(--line);
+  }
+  table.vol-table td .role-tag.admin{background:var(--teal);color:var(--white);border-color:var(--teal);}
   .dept-block-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
   .dept-block-head h3{font-size:1.15rem;font-weight:500;margin:0;}
   .dept-name-edit{display:flex;gap:8px;align-items:center;flex:1 1 auto;}
@@ -244,6 +286,12 @@
     table.escala th:not(:first-child), table.escala td:not(.func-cell){min-width:135px;}
     .assign-select{max-width:120px;}
     .note-box{padding:14px 16px;max-width:100%;}
+    .login-card{padding:30px 24px;}
+    .user-badge{padding:10px 0;}
+    .admin-block{padding:14px 16px;margin-bottom:18px;}
+    .admin-block textarea{min-height:120px;}
+    .admin-form-title{margin:18px 0 10px 0;}
+    table.vol-table{min-width:520px;}
   }
   @media (max-width: 380px){
     main{padding:20px 14px;}
@@ -252,12 +300,36 @@
     .field input, .field select{font-size:.85rem;padding:8px 9px;}
     .weekday-checks label, .mode-toggle label{font-size:.78rem;}
     button.primary, button.export-btn{padding:10px 14px;font-size:.82rem;}
+    .login-card{padding:24px 18px;}
+    .login-title{font-size:1.3rem;}
+    .login-sub{font-size:.8rem;}
+    .user-badge-name{font-size:.85rem;}
+    .admin-block{padding:12px 14px;}
+    .admin-block-title{font-size:.95rem;}
   }
 </style>
 </head>
 <body>
 
-<div class="shell">
+<!-- LOGIN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-card">
+    <h1 class="login-title">Escala de<br>Voluntários</h1>
+    <p class="login-sub">Entre com o login do seu departamento ou de administrador.</p>
+    <div class="field">
+      <label for="login-email">E-mail</label>
+      <input id="login-email" type="email" placeholder="seu-login@exemplo.com" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="login-password">Senha</label>
+      <input id="login-password" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="primary" id="login-submit" style="width:100%;text-align:center;">Entrar</button>
+    <div class="login-error" id="login-error" style="display:none;"></div>
+  </div>
+</div>
+
+<div class="shell" id="app-shell" style="display:none;">
   <div class="rail">
     <div class="rail-top">
       <div class="rail-title">
@@ -268,65 +340,31 @@
         <span></span><span></span><span></span>
       </button>
     </div>
+    <div class="user-badge" id="user-badge">
+      <div class="user-badge-name" id="user-badge-name"></div>
+      <div class="user-badge-role" id="user-badge-role"></div>
+      <button class="link user-badge-logout" id="logout-btn">sair</button>
+    </div>
     <nav id="main-nav">
       <button data-tab="home" class="active"><span class="nav-dot"></span>Início</button>
-      <button data-tab="departamentos"><span class="nav-dot"></span>Departamentos</button>
-      <button data-tab="voluntarios"><span class="nav-dot"></span>Voluntários</button>
+      <button data-tab="departamentos" data-admin-only="1"><span class="nav-dot"></span>Departamentos</button>
+      <button data-tab="voluntarios" data-admin-only="1"><span class="nav-dot"></span>Voluntários</button>
       <button data-tab="escala"><span class="nav-dot"></span>Escala mensal</button>
+      <button data-tab="admin" data-admin-only="1"><span class="nav-dot"></span>Administração</button>
     </nav>
     <div class="footnote">Conectado ao seu projeto Supabase.<br>Os dados ficam salvos no banco.</div>
   </div>
 
   <main>
     <!--
-      A aba "Conexão" foi escondida do menu a pedido do dono do projeto,
-      para evitar que qualquer pessoa usando o app veja/edite a URL e a
-      chave pela tela. As credenciais agora são fixas no código — veja o
-      bloco "CONFIGURAÇÃO FIXA DO SUPABASE" lá no <script>, perto do topo.
-
-      Se um dia precisar reativar esta tela (por exemplo, pra trocar de
-      projeto direto pelo navegador em vez de editar o arquivo), descomente
-      o bloco abaixo E o botão de nav correspondente logo acima:
-      <button data-tab="conexao"><span class="nav-dot" id="nav-dot-conexao"></span>Conexão</button>
-
-    <section id="tab-conexao">
-      <h2 class="page-title">Conexão com o Supabase</h2>
-      <p class="page-desc">Cole a URL e a chave pública (anon) do seu projeto Supabase. Isso fica salvo só neste navegador.</p>
-
-      <div class="connect-status off" id="connect-status">
-        <span class="connect-dot"></span>
-        <span id="connect-status-text">Ainda não conectado.</span>
-      </div>
-
-      <div class="steps-box">
-        <b>Antes de conectar:</b>
-        <ol>
-          <li>Crie um projeto grátis em <b>supabase.com</b> (se ainda não tiver um).</li>
-          <li>Abra o <b>SQL Editor</b> do projeto e rode o script <b>supabase-schema.sql</b> que veio junto com este arquivo.</li>
-          <li>Vá em <b>Project Settings → API</b> e copie a <b>Project URL</b> e a chave <b>anon public</b>.</li>
-          <li>Cole os dois campos abaixo e clique em Conectar.</li>
-        </ol>
-      </div>
-
-      <div class="field-row">
-        <div class="field">
-          <label for="sb-url">Project URL</label>
-          <input id="sb-url" type="text" placeholder="https://xxxxxxxx.supabase.co">
-        </div>
-        <div class="field">
-          <label for="sb-key">Chave anon public</label>
-          <input id="sb-key" type="text" placeholder="eyJhbGciOi...">
-        </div>
-        <button class="primary" id="sb-connect">Conectar</button>
-      </div>
-      <div class="form-actions">
-        <button class="link" id="sb-disconnect">esquecer credenciais salvas neste navegador</button>
-      </div>
-    </section>
+      A antiga tela de "Conexão" (URL + chave coladas na tela) foi
+      substituída pelo login de verdade (Supabase Auth) — cada
+      departamento e o administrador entram com e-mail/senha próprios,
+      e o acesso de cada um é controlado no banco (RLS), não só na
+      tela. A URL/chave do projeto continuam fixas no bloco
+      "CONFIGURAÇÃO FIXA DO SUPABASE" no <script>.
     -->
 
-    <!-- Banner de erro simples: aparece só se a conexão fixa falhar,
-         sem expor nenhum campo de URL/chave na tela. -->
     <div class="connect-status off" id="connect-status" style="display:none;">
       <span class="connect-dot"></span>
       <span id="connect-status-text"></span>
@@ -335,10 +373,77 @@
     <!-- INÍCIO -->
     <section id="tab-home">
       <h2 class="page-title">Início</h2>
-      <p class="page-desc">Um mural rápido para avisos e recados — só quem edita o app pode alterar.</p>
-      <div id="home-locked" class="locked-msg" style="display:none;">Conecte-se ao Supabase para ver os avisos.</div>
+      <p class="page-desc">Mural de avisos — a edição fica na aba Administração.</p>
+      <div id="home-locked" class="locked-msg" style="display:none;">Conecte-se para ver os avisos.</div>
       <div id="home-content">
         <div id="home-message-box"></div>
+      </div>
+    </section>
+
+    <!-- ADMINISTRAÇÃO -->
+    <section id="tab-admin" style="display:none;">
+      <h2 class="page-title">Administração</h2>
+      <p class="page-desc">Configurações gerais do sistema — visível só para administradores.</p>
+
+      <div class="admin-block">
+        <h3 class="admin-block-title">Aviso da tela Início</h3>
+        <textarea id="admin-home-textarea" placeholder="Escreva aqui um aviso, recado ou instrução..."></textarea>
+        <div class="form-actions" style="margin-top:12px;">
+          <button class="primary" id="admin-home-save">Salvar aviso</button>
+        </div>
+      </div>
+
+      <div class="admin-block">
+        <h3 class="admin-block-title">Plano de fundo da tela de login</h3>
+        <p class="admin-block-desc">Uma imagem (JPG ou PNG) exibida atrás do card de login.</p>
+        <div class="dept-logo-row">
+          <div id="login-bg-preview"></div>
+          <label class="small-icon file-label" id="login-bg-label">Enviar imagem
+            <input type="file" accept="image/png, image/jpeg" id="login-bg-input">
+          </label>
+          <button class="ghost" id="login-bg-remove" style="display:none;">remover imagem</button>
+        </div>
+      </div>
+
+      <div class="admin-block">
+        <h3 class="admin-block-title">Usuários</h3>
+        <p class="admin-block-desc">Cada departamento tem um login próprio; administradores enxergam e editam tudo.</p>
+
+        <div class="table-scroll">
+          <table class="vol-table">
+            <thead><tr><th>E-mail</th><th>Papel</th><th>Departamento</th><th></th></tr></thead>
+            <tbody id="admin-users-tbody"></tbody>
+          </table>
+        </div>
+        <div id="admin-users-empty" class="empty" style="display:none;">Nenhum usuário cadastrado ainda.</div>
+
+        <h4 class="admin-form-title" id="admin-user-form-title">Novo usuário</h4>
+        <div class="field-row">
+          <div class="field">
+            <label for="admin-user-email">E-mail de login</label>
+            <input id="admin-user-email" type="email" placeholder="louvor@suaigreja.com">
+          </div>
+          <div class="field">
+            <label for="admin-user-password">Senha</label>
+            <input id="admin-user-password" type="password" placeholder="mín. 6 caracteres">
+          </div>
+          <div class="field">
+            <label for="admin-user-role">Papel</label>
+            <select id="admin-user-role">
+              <option value="leader">Líder de departamento</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+          <div class="field" id="admin-user-dept-field">
+            <label for="admin-user-dept">Departamento</label>
+            <select id="admin-user-dept"></select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="primary" id="admin-user-save">Criar usuário</button>
+          <button class="link" id="admin-user-cancel" style="display:none;">cancelar edição</button>
+        </div>
+        <div id="admin-user-error" class="login-error" style="display:none;"></div>
       </div>
     </section>
 
@@ -585,50 +690,116 @@
     return String(raw).trim().replace(/\s+/g, '').replace(/^['"]|['"]$/g, '');
   }
 
-  async function connect(rawUrl, rawKey){
-    const url = normalizeSupabaseUrl(rawUrl);
-    const key = normalizeSupabaseKey(rawKey);
-    if(!url || !key){
-      setConnectStatus(false, 'Configuração incompleta — confira as constantes SUPABASE_URL e SUPABASE_ANON_KEY no início do <script>.');
-      setLocked(true);
+  let currentUser = null;
+  let currentProfile = null; // {id, role, department_id, display_name}
+
+  function initSupabaseClient(){
+    const url = normalizeSupabaseUrl(SUPABASE_URL);
+    const key = normalizeSupabaseKey(SUPABASE_ANON_KEY);
+    if(!url || !key || !/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)){
+      setConnectStatus(false, 'Configuração inválida — confira as constantes SUPABASE_URL e SUPABASE_ANON_KEY no início do <script>.');
+      return false;
+    }
+    sb = window.supabase.createClient(url, key);
+    return true;
+  }
+
+  function showLogin(){
+    document.getElementById('app-shell').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+  function showApp(){
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-shell').style.display = '';
+  }
+
+  async function onAuthenticated(session){
+    currentUser = session.user;
+    const { data: profile, error } = await sb.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+    if(error || !profile){
+      const errEl = document.getElementById('login-error');
+      errEl.textContent = 'Este login não tem um perfil configurado. Peça para um administrador te cadastrar.';
+      errEl.style.display = 'block';
+      await sb.auth.signOut();
+      currentUser = null;
+      showLogin();
       return;
     }
-    if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)){
-      setConnectStatus(false, 'A SUPABASE_URL fixada no código não parece uma Project URL válida (formato esperado: https://xxxxxxxx.supabase.co).');
-      setLocked(true);
-      return;
-    }
-    try{
-      sb = window.supabase.createClient(url, key);
-      const { error } = await sb.from('departments').select('id').limit(1);
-      if(error) throw error;
-      connected = true;
-      setConnectStatus(true, 'Conectado ao seu projeto Supabase.');
-      setLocked(false);
-      await loadAll();
-    } catch(err){
-      connected = false;
-      setLocked(true);
-      let hint = 'confira a URL/chave fixadas no código e se o schema.sql já foi executado.';
-      const msg = (err && err.message) ? err.message : String(err);
-      if(/relation .* does not exist/i.test(msg)){
-        hint = 'as tabelas ainda não existem nesse projeto — rode o arquivo supabase-schema.sql inteiro no SQL Editor do Supabase.';
-      } else if(/JWT|invalid API key|apikey/i.test(msg)){
-        hint = 'a chave parece inválida — confira se SUPABASE_ANON_KEY no código é a "anon public" (não a "service_role").';
-      } else if(/Failed to fetch|NetworkError/i.test(msg)){
-        hint = 'não deu pra alcançar essa URL — confira se SUPABASE_URL no código está exatamente igual à Project URL do painel do Supabase.';
-      }
-      setConnectStatus(false, 'Não foi possível conectar: ' + msg + ' — ' + hint);
+    currentProfile = profile;
+    connected = true;
+    setLocked(false);
+    showApp();
+    await loadAll();
+    applyRoleGating();
+  }
+
+  function applyRoleGating(){
+    if(!currentProfile) return;
+    const isAdmin = currentProfile.role === 'admin';
+    document.querySelectorAll('[data-admin-only]').forEach(el=>{ el.style.display = isAdmin ? '' : 'none'; });
+    const dep = departments.find(d=>d.id===currentProfile.department_id);
+    document.getElementById('user-badge-name').textContent = currentProfile.display_name || currentUser.email;
+    document.getElementById('user-badge-role').textContent = isAdmin ? 'Administrador' : ('Líder — ' + (dep ? dep.name : ''));
+    const activeBtn = document.querySelector('nav button.active');
+    if(!isAdmin && activeBtn && activeBtn.hasAttribute('data-admin-only')){
+      switchTab('home');
     }
   }
 
-  // Os listeners de #sb-connect e #sb-disconnect foram removidos porque
-  // esses botões ficaram dentro do bloco comentado da aba "Conexão".
-  // Se reativar a aba (veja o comentário no HTML), lembre de trazer de
-  // volta algo equivalente a:
-  //   document.getElementById('sb-connect').addEventListener('click', ()=>{
-  //     connect(document.getElementById('sb-url').value, document.getElementById('sb-key').value);
-  //   });
+  document.getElementById('login-submit').addEventListener('click', async ()=>{
+    const errEl = document.getElementById('login-error');
+    errEl.style.display = 'none';
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    if(!email || !password){
+      errEl.textContent = 'Preencha e-mail e senha.';
+      errEl.style.display = 'block';
+      return;
+    }
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if(error){
+      errEl.textContent = 'Não foi possível entrar: ' + error.message;
+      errEl.style.display = 'block';
+      return;
+    }
+    await onAuthenticated(data.session);
+  });
+  document.getElementById('login-password').addEventListener('keydown', (e)=>{
+    if(e.key==='Enter') document.getElementById('login-submit').click();
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', async ()=>{
+    await sb.auth.signOut();
+    currentUser = null; currentProfile = null; connected = false;
+    document.getElementById('login-email').value='';
+    document.getElementById('login-password').value='';
+    showLogin();
+  });
+
+  async function loadLoginBackground(){
+    const { data } = await sb.from('app_settings').select('*').eq('key','login_background').maybeSingle();
+    const url = data && data.value;
+    document.getElementById('login-screen').style.backgroundImage = url ? `url('${url}')` : '';
+    const preview = document.getElementById('login-bg-preview');
+    const removeBtn = document.getElementById('login-bg-remove');
+    if(preview) preview.innerHTML = url ? `<img src="${url}" alt="Plano de fundo do login">` : '<span class="dept-empty">nenhuma imagem definida</span>';
+    if(removeBtn) removeBtn.style.display = url ? 'inline' : 'none';
+  }
+  document.getElementById('login-bg-input').addEventListener('change', async ()=>{
+    const file = document.getElementById('login-bg-input').files[0];
+    if(!file) return;
+    const { error: upErr } = await sb.storage.from('login-backgrounds').upload('background', file, { upsert:true, contentType:file.type });
+    if(upErr){ alert('Erro ao enviar imagem: ' + upErr.message); return; }
+    const { data } = sb.storage.from('login-backgrounds').getPublicUrl('background');
+    const publicUrl = data.publicUrl + '?t=' + Date.now();
+    await sb.from('app_settings').upsert({ key:'login_background', value: publicUrl, updated_at: new Date().toISOString() });
+    document.getElementById('login-bg-input').value = '';
+    await loadLoginBackground();
+  });
+  document.getElementById('login-bg-remove').addEventListener('click', async ()=>{
+    await sb.from('app_settings').delete().eq('key','login_background');
+    await loadLoginBackground();
+  });
 
   // ---------- Menu hambúrguer ----------
   const hamburgerBtn = document.getElementById('hamburger-btn');
@@ -647,16 +818,27 @@
   // ---------- Tabs ----------
   document.querySelectorAll('nav button').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('tab-home').style.display = btn.dataset.tab==='home' ? '' : 'none';
-      document.getElementById('tab-voluntarios').style.display = btn.dataset.tab==='voluntarios' ? '' : 'none';
-      document.getElementById('tab-departamentos').style.display = btn.dataset.tab==='departamentos' ? '' : 'none';
-      document.getElementById('tab-escala').style.display = btn.dataset.tab==='escala' ? '' : 'none';
-      if(btn.dataset.tab==='escala' && connected) renderEscala();
-      closeMobileMenu();
+      switchTab(btn.dataset.tab);
     });
   });
+  function switchTab(tab){
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    const btn = document.querySelector(`nav button[data-tab="${tab}"]`);
+    if(btn) btn.classList.add('active');
+    document.getElementById('tab-home').style.display = tab==='home' ? '' : 'none';
+    document.getElementById('tab-voluntarios').style.display = tab==='voluntarios' ? '' : 'none';
+    document.getElementById('tab-departamentos').style.display = tab==='departamentos' ? '' : 'none';
+    document.getElementById('tab-escala').style.display = tab==='escala' ? '' : 'none';
+    document.getElementById('tab-admin').style.display = tab==='admin' ? '' : 'none';
+    if(tab==='escala' && connected) renderEscala();
+    if(tab==='admin' && connected){
+      renderAdminDeptSelectForUsers();
+      resetUserForm();
+      loadAdminUsers();
+      loadLoginBackground();
+    }
+    closeMobileMenu();
+  }
 
   // ---------- Carregar tudo do banco ----------
   async function loadAll(){
@@ -684,50 +866,154 @@
     await loadHomeMessage();
   }
 
-  // ---------- Início (mural de avisos) ----------
+  // ---------- Início (mural de avisos, somente leitura) ----------
   let homeMessage = '';
   let homeUpdatedAt = null;
-  let editingHome = false;
 
   async function loadHomeMessage(){
     const { data } = await sb.from('app_settings').select('*').eq('key','home_message').maybeSingle();
     homeMessage = (data && data.value) || '';
     homeUpdatedAt = (data && data.updated_at) || null;
     renderHome();
+    const adminTextarea = document.getElementById('admin-home-textarea');
+    if(adminTextarea) adminTextarea.value = homeMessage;
   }
 
   function renderHome(){
     const box = document.getElementById('home-message-box');
-    if(editingHome){
-      box.innerHTML = `
-        <div class="home-edit">
-          <textarea id="home-textarea" placeholder="Escreva aqui um aviso, recado ou instrução para quem usa o app...">${escapeHtml(homeMessage)}</textarea>
-          <div class="form-actions" style="margin-top:12px;">
-            <button class="primary" id="home-save">Salvar aviso</button>
-            <button class="link" id="home-cancel">cancelar</button>
-          </div>
-        </div>`;
-      document.getElementById('home-save').addEventListener('click', saveHomeMessage);
-      document.getElementById('home-cancel').addEventListener('click', ()=>{ editingHome = false; renderHome(); });
-      return;
-    }
     const metaHtml = homeUpdatedAt
       ? `<div class="home-meta">Atualizado em ${new Date(homeUpdatedAt).toLocaleString('pt-BR')}</div>` : '';
     box.innerHTML = `
-      <div class="home-notice ${homeMessage ? '' : 'home-notice-empty'}">${homeMessage ? escapeHtml(homeMessage) : 'Nenhum aviso definido ainda. Clique em "editar aviso" para escrever o primeiro recado.'}</div>
+      <div class="home-notice ${homeMessage ? '' : 'home-notice-empty'}">${homeMessage ? escapeHtml(homeMessage) : 'Nenhum aviso definido no momento.'}</div>
       ${metaHtml}
-      <button class="small-icon" id="home-edit-btn">editar aviso</button>
     `;
-    document.getElementById('home-edit-btn').addEventListener('click', ()=>{ editingHome = true; renderHome(); });
   }
 
-  async function saveHomeMessage(){
-    const text = document.getElementById('home-textarea').value;
+  document.getElementById('admin-home-save').addEventListener('click', async ()=>{
+    const text = document.getElementById('admin-home-textarea').value;
     const { error } = await sb.from('app_settings').upsert({ key:'home_message', value:text, updated_at: new Date().toISOString() });
     if(error){ alert('Erro ao salvar aviso: ' + error.message); return; }
-    editingHome = false;
     await loadHomeMessage();
+  });
+
+  // ---------- Administração: usuários ----------
+  let editingUserId = null;
+
+  function renderAdminDeptSelectForUsers(){
+    const sel = document.getElementById('admin-user-dept');
+    if(!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = departments.map(d=>`<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
+    if(prev && departments.some(d=>String(d.id)===prev)) sel.value = prev;
   }
+
+  document.getElementById('admin-user-role').addEventListener('change', updateAdminUserDeptVisibility);
+  function updateAdminUserDeptVisibility(){
+    const isLeader = document.getElementById('admin-user-role').value === 'leader';
+    document.getElementById('admin-user-dept-field').style.display = isLeader ? '' : 'none';
+  }
+
+  function resetUserForm(){
+    editingUserId = null;
+    document.getElementById('admin-user-email').value = '';
+    document.getElementById('admin-user-email').disabled = false;
+    document.getElementById('admin-user-password').value = '';
+    document.getElementById('admin-user-password').placeholder = 'mín. 6 caracteres';
+    document.getElementById('admin-user-role').value = 'leader';
+    updateAdminUserDeptVisibility();
+    document.getElementById('admin-user-save').textContent = 'Criar usuário';
+    document.getElementById('admin-user-cancel').style.display = 'none';
+    document.getElementById('admin-user-form-title').textContent = 'Novo usuário';
+    document.getElementById('admin-user-error').style.display = 'none';
+  }
+
+  async function loadAdminUsers(){
+    if(!currentProfile || currentProfile.role!=='admin') return;
+    const { data, error } = await sb.functions.invoke('admin-users', { body: { action:'list' } });
+    if(error){
+      document.getElementById('admin-users-tbody').innerHTML = '';
+      document.getElementById('admin-users-empty').style.display = 'block';
+      document.getElementById('admin-users-empty').textContent = 'Não foi possível carregar os usuários: ' + error.message + ' (a Edge Function admin-users está implantada?)';
+      return;
+    }
+    document.getElementById('admin-users-empty').textContent = 'Nenhum usuário cadastrado ainda.';
+    renderAdminUsers((data && data.users) || []);
+  }
+
+  function renderAdminUsers(users){
+    const tbody = document.getElementById('admin-users-tbody');
+    const empty = document.getElementById('admin-users-empty');
+    if(users.length===0){ tbody.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display='none';
+    tbody.innerHTML = users.map(u=>{
+      const dep = departments.find(d=>d.id===u.department_id);
+      return `<tr>
+        <td>${escapeHtml(u.email)}</td>
+        <td><span class="role-tag ${u.role==='admin'?'admin':''}">${u.role==='admin'?'Administrador':'Líder'}</span></td>
+        <td>${dep ? escapeHtml(dep.name) : '<span class="dept-empty">—</span>'}</td>
+        <td class="actions-col">
+          <button class="small-icon" data-edituser="${u.id}">editar</button>
+          <button class="ghost" data-deluser="${u.id}">remover</button>
+        </td>
+      </tr>`;
+    }).join('');
+    tbody.querySelectorAll('[data-edituser]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const u = users.find(x=>x.id===b.dataset.edituser);
+        if(!u) return;
+        editingUserId = u.id;
+        document.getElementById('admin-user-email').value = u.email;
+        document.getElementById('admin-user-email').disabled = true;
+        document.getElementById('admin-user-password').value = '';
+        document.getElementById('admin-user-password').placeholder = 'deixe em branco para não trocar';
+        document.getElementById('admin-user-role').value = u.role;
+        renderAdminDeptSelectForUsers();
+        document.getElementById('admin-user-dept').value = u.department_id || '';
+        updateAdminUserDeptVisibility();
+        document.getElementById('admin-user-save').textContent = 'Salvar alterações';
+        document.getElementById('admin-user-cancel').style.display = 'inline';
+        document.getElementById('admin-user-form-title').textContent = 'Editando usuário';
+      });
+    });
+    tbody.querySelectorAll('[data-deluser]').forEach(b=>{
+      b.addEventListener('click', async ()=>{
+        if(!confirm('Remover este usuário? Ele perde o acesso imediatamente.')) return;
+        const { data, error } = await sb.functions.invoke('admin-users', { body: { action:'delete', id: b.dataset.deluser } });
+        if(error || (data && data.error)){ alert('Erro ao remover: ' + ((data && data.error) || error.message)); return; }
+        await loadAdminUsers();
+      });
+    });
+  }
+
+  document.getElementById('admin-user-cancel').addEventListener('click', resetUserForm);
+
+  document.getElementById('admin-user-save').addEventListener('click', async ()=>{
+    const errEl = document.getElementById('admin-user-error');
+    errEl.style.display = 'none';
+    const email = document.getElementById('admin-user-email').value.trim();
+    const password = document.getElementById('admin-user-password').value;
+    const role = document.getElementById('admin-user-role').value;
+    const department_id = document.getElementById('admin-user-dept').value || null;
+    if(role==='leader' && !department_id){
+      errEl.textContent = 'Escolha o departamento do líder.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(editingUserId){
+      const { data, error } = await sb.functions.invoke('admin-users', {
+        body: { action:'update', id: editingUserId, password: password || undefined, role, department_id, display_name: email }
+      });
+      if(error || (data && data.error)){ errEl.textContent = (data && data.error) || error.message; errEl.style.display='block'; return; }
+    } else {
+      if(!email || !password){ errEl.textContent = 'Preencha e-mail e senha.'; errEl.style.display='block'; return; }
+      const { data, error } = await sb.functions.invoke('admin-users', {
+        body: { action:'create', email, password, role, department_id, display_name: email }
+      });
+      if(error || (data && data.error)){ errEl.textContent = (data && data.error) || error.message; errEl.style.display='block'; return; }
+    }
+    resetUserForm();
+    await loadAdminUsers();
+  });
 
   function renderVolFilterOptions(){
     const sel = document.getElementById('vol-filter-dept');
@@ -1034,8 +1320,11 @@
   function renderDeptSelect(){
     const sel = document.getElementById('e-dept');
     const prev = sel.value;
-    sel.innerHTML = departments.map(d=>`<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
-    if(prev && departments.some(d=>String(d.id)===prev)) sel.value = prev;
+    const isLeader = currentProfile && currentProfile.role === 'leader';
+    const list = isLeader ? departments.filter(d=>d.id===currentProfile.department_id) : departments;
+    sel.innerHTML = list.map(d=>`<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
+    sel.disabled = !!isLeader;
+    if(prev && list.some(d=>String(d.id)===prev)) sel.value = prev;
     loadDeptControls(currentDeptId());
     if(document.getElementById('tab-escala').style.display !== 'none') renderEscala();
   }
@@ -1437,9 +1726,21 @@
   });
 
   // ---------- init ----------
-  setLocked(true);
-  renderMonthOptions();
-  connect(SUPABASE_URL, SUPABASE_ANON_KEY);
+  async function bootstrap(){
+    setLocked(true);
+    renderMonthOptions();
+    showLogin();
+    if(!initSupabaseClient()) return;
+    await loadLoginBackground();
+    const { data: { session } } = await sb.auth.getSession();
+    if(session){
+      await onAuthenticated(session);
+    }
+    sb.auth.onAuthStateChange((event)=>{
+      if(event === 'SIGNED_OUT'){ showLogin(); }
+    });
+  }
+  bootstrap();
 })();
 </script>
 </body>
