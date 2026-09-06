@@ -913,6 +913,30 @@
     document.getElementById('admin-user-dept-field').style.display = isLeader ? '' : 'none';
   }
 
+  // Chama a Edge Function e sempre devolve a mensagem real de erro
+  // (o supabase-js às vezes só diz "non-2xx status code" e esconde o
+  // motivo verdadeiro, que vem no corpo da resposta da função).
+  async function invokeAdminUsers(body){
+    const { data, error } = await sb.functions.invoke('admin-users', { body });
+    if(error){
+      let message = error.message || String(error);
+      if(error.context && typeof error.context.json === 'function'){
+        try{
+          const parsed = await error.context.json();
+          if(parsed && parsed.error) message = parsed.error;
+        } catch(e){
+          try{
+            const text = await error.context.text();
+            if(text) message = text;
+          } catch(e2){ /* mantém a mensagem genérica */ }
+        }
+      }
+      return { data: null, error: message };
+    }
+    if(data && data.error) return { data: null, error: data.error };
+    return { data, error: null };
+  }
+
   function resetUserForm(){
     editingUserId = null;
     document.getElementById('admin-user-email').value = '';
@@ -929,11 +953,11 @@
 
   async function loadAdminUsers(){
     if(!currentProfile || currentProfile.role!=='admin') return;
-    const { data, error } = await sb.functions.invoke('admin-users', { body: { action:'list' } });
+    const { data, error } = await invokeAdminUsers({ action:'list' });
     if(error){
       document.getElementById('admin-users-tbody').innerHTML = '';
       document.getElementById('admin-users-empty').style.display = 'block';
-      document.getElementById('admin-users-empty').textContent = 'Não foi possível carregar os usuários: ' + error.message + ' (a Edge Function admin-users está implantada?)';
+      document.getElementById('admin-users-empty').textContent = 'Não foi possível carregar os usuários: ' + error + ' (a Edge Function admin-users está implantada?)';
       return;
     }
     document.getElementById('admin-users-empty').textContent = 'Nenhum usuário cadastrado ainda.';
@@ -978,8 +1002,8 @@
     tbody.querySelectorAll('[data-deluser]').forEach(b=>{
       b.addEventListener('click', async ()=>{
         if(!confirm('Remover este usuário? Ele perde o acesso imediatamente.')) return;
-        const { data, error } = await sb.functions.invoke('admin-users', { body: { action:'delete', id: b.dataset.deluser } });
-        if(error || (data && data.error)){ alert('Erro ao remover: ' + ((data && data.error) || error.message)); return; }
+        const { error } = await invokeAdminUsers({ action:'delete', id: b.dataset.deluser });
+        if(error){ alert('Erro ao remover: ' + error); return; }
         await loadAdminUsers();
       });
     });
@@ -1000,16 +1024,12 @@
       return;
     }
     if(editingUserId){
-      const { data, error } = await sb.functions.invoke('admin-users', {
-        body: { action:'update', id: editingUserId, password: password || undefined, role, department_id, display_name: email }
-      });
-      if(error || (data && data.error)){ errEl.textContent = (data && data.error) || error.message; errEl.style.display='block'; return; }
+      const { error } = await invokeAdminUsers({ action:'update', id: editingUserId, password: password || undefined, role, department_id, display_name: email });
+      if(error){ errEl.textContent = error; errEl.style.display='block'; return; }
     } else {
       if(!email || !password){ errEl.textContent = 'Preencha e-mail e senha.'; errEl.style.display='block'; return; }
-      const { data, error } = await sb.functions.invoke('admin-users', {
-        body: { action:'create', email, password, role, department_id, display_name: email }
-      });
-      if(error || (data && data.error)){ errEl.textContent = (data && data.error) || error.message; errEl.style.display='block'; return; }
+      const { error } = await invokeAdminUsers({ action:'create', email, password, role, department_id, display_name: email });
+      if(error){ errEl.textContent = error; errEl.style.display='block'; return; }
     }
     resetUserForm();
     await loadAdminUsers();
